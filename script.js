@@ -2,6 +2,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const jsonUpload = document.getElementById('jsonUpload');
     const tbody = document.querySelector('#resultsTable tbody');
 
+    // Dynamic GPA update when an Honors checkbox is toggled
+    tbody.addEventListener('change', (event) => {
+        if (event.target && event.target.classList.contains('honors-checkbox')) {
+            const row = event.target.closest('tr');
+            if (row) {
+                updateRowGpa(row);
+            }
+        }
+    });
+
     jsonUpload.addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
@@ -43,14 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (periodObj && periodObj.grade !== undefined && periodObj.grade !== null && String(periodObj.grade).trim() !== '') {
                     const parsedGrade = parseGrade(periodObj.grade);
                     if (parsedGrade) {
-                        periodGrades[p] = formatGradeBadge(parsedGrade.letter);
+                        periodGrades[p] = formatGradeBadgeWithHonors(parsedGrade.letter, parsedGrade.gpa);
                         totalGpaPoints += parsedGrade.gpa;
                         classCount++;
                     }
                 }
             }
 
-            // Calculate overall GPA and format as a colored badge based on grade range
+            // Calculate initial overall GPA
             const rawGpa = classCount > 0 ? (totalGpaPoints / classCount).toFixed(2) : 'N/A';
             const formattedGpa = formatGpaBadge(rawGpa);
 
@@ -59,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.innerHTML = `
                 <td>${escapeHtml(studentId)}</td>
                 <td>${escapeHtml(name)}</td>
-                <td>${formattedGpa}</td>
+                <td class="gpa-cell">${formattedGpa}</td>
                 <td>${periodGrades[0]}</td>
                 <td>${periodGrades[1]}</td>
                 <td>${periodGrades[2]}</td>
@@ -75,9 +85,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Formats a letter grade as a styled HTML badge pill based on the base letter.
+     * Recalculates GPA for a given student row based on base points and honors selections.
      */
-    function formatGradeBadge(letter) {
+    function updateRowGpa(row) {
+        const checkboxes = row.querySelectorAll('.honors-checkbox');
+        let totalGpaPoints = 0;
+        const classCount = checkboxes.length;
+
+        checkboxes.forEach(checkbox => {
+            const baseGpa = parseFloat(checkbox.dataset.baseGpa) || 0;
+            const isHonors = checkbox.checked;
+            totalGpaPoints += baseGpa + (isHonors ? 1.0 : 0.0);
+        });
+
+        const rawGpa = classCount > 0 ? (totalGpaPoints / classCount).toFixed(2) : 'N/A';
+        const gpaCell = row.querySelector('.gpa-cell');
+        if (gpaCell) {
+            gpaCell.innerHTML = formatGpaBadge(rawGpa);
+        }
+    }
+
+    /**
+     * Formats a letter grade badge wrapped with an Honors checkbox.
+     */
+    function formatGradeBadgeWithHonors(letter, baseGpa) {
         if (!letter || letter === '-') {
             return '<span class="grade-none">-</span>';
         }
@@ -93,7 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'F': badgeClass = 'grade-F'; break;
         }
 
-        return `<span class="grade-badge ${badgeClass}">${escapeHtml(letter)}</span>`;
+        return `
+            <div class="grade-cell">
+                <span class="grade-badge ${badgeClass}">${escapeHtml(letter)}</span>
+                <label class="honors-label">
+                    <input type="checkbox" class="honors-checkbox" data-base-gpa="${baseGpa}"> Honors
+                </label>
+            </div>
+        `;
     }
 
     /**
@@ -111,9 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let badgeClass = 'grade-F';
 
-        if (numericGpa >= 3.0)      badgeClass = 'grade-A'; // Green (A Range)
-        else if (numericGpa >= 2.0) badgeClass = 'grade-B'; // Blue  (B Range)
-        else if (numericGpa >= 1.0) badgeClass = 'grade-C'; // Yellow(C Range)
+        if (numericGpa >= 3.5)      badgeClass = 'grade-A'; // Green (A Range)
+        else if (numericGpa >= 2.5) badgeClass = 'grade-B'; // Blue  (B Range)
+        else if (numericGpa >= 1.5) badgeClass = 'grade-C'; // Yellow(C Range)
         else if (numericGpa >= 0.5) badgeClass = 'grade-D'; // Orange(D Range)
         else                        badgeClass = 'grade-F'; // Red   (F Range)
 
