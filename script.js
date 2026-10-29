@@ -2,7 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const jsonUpload = document.getElementById('jsonUpload');
     const minGpaInput = document.getElementById('minGpa');
     const maxGpaInput = document.getElementById('maxGpa');
+    const printBtn = document.getElementById('printBtn');
     const tbody = document.querySelector('#resultsTable tbody');
+
+    // Print / Export PDF listener
+    if (printBtn) {
+        printBtn.addEventListener('click', () => {
+            window.print();
+        });
+    }
 
     // Filter event listeners
     minGpaInput.addEventListener('input', applyFilters);
