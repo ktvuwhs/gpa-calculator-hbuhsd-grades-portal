@@ -74,6 +74,23 @@ h1 {
     border-color: #3669eb;
 }
 
+/* Print Button */
+.print-btn {
+    background-color: #2c3e50;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.print-btn:hover {
+    background-color: #1a252f;
+}
+
 .table-container {
     overflow-x: auto;
 }
@@ -170,4 +187,32 @@ tr:hover {
 
 .grade-none {
     color: #888888;
+}
+
+/* Print Styles for PDF Export */
+@media print {
+    body {
+        background-color: #ffffff;
+        padding: 0;
+    }
+
+    .container {
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+    }
+
+    .controls-container {
+        display: none !important;
+    }
+
+    table {
+        font-size: 0.85rem;
+    }
+
+    /* Maintain grade badge color formatting in PDF export */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 }
