@@ -1,6 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     const jsonUpload = document.getElementById('jsonUpload');
+    const minGpaInput = document.getElementById('minGpa');
+    const maxGpaInput = document.getElementById('maxGpa');
     const tbody = document.querySelector('#resultsTable tbody');
+
+    // Filter event listeners
+    minGpaInput.addEventListener('input', applyFilters);
+    maxGpaInput.addEventListener('input', applyFilters);
 
     // Dynamic GPA update when an Honors checkbox is toggled
     tbody.addEventListener('change', (event) => {
@@ -8,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = event.target.closest('tr');
             if (row) {
                 updateRowGpa(row);
+                applyFilters(); // Re-evaluate filter visibility when GPA changes
             }
         }
     });
@@ -66,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Insert student row into the table
             const tr = document.createElement('tr');
+            tr.dataset.gpa = rawGpa; // Store raw GPA value on row for filtering
             tr.innerHTML = `
                 <td>${escapeHtml(studentId)}</td>
                 <td>${escapeHtml(name)}</td>
@@ -82,6 +90,45 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             tbody.appendChild(tr);
         }
+
+        applyFilters();
+    }
+
+    /**
+     * Filters student rows based on minimum and maximum GPA thresholds.
+     */
+    function applyFilters() {
+        const minVal = parseFloat(minGpaInput.value);
+        const maxVal = parseFloat(maxGpaInput.value);
+
+        const hasMin = !isNaN(minVal);
+        const hasMax = !isNaN(maxVal);
+
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const rawGpaAttr = row.dataset.gpa;
+
+            // Handle non-numeric or missing GPA
+            if (!rawGpaAttr || rawGpaAttr === 'N/A') {
+                row.style.display = (hasMin || hasMax) ? 'none' : '';
+                return;
+            }
+
+            const gpa = parseFloat(rawGpaAttr);
+            let visible = true;
+
+            // Check if GPA is at least minVal
+            if (hasMin && gpa < minVal) {
+                visible = false;
+            }
+
+            // Check if GPA is lower than maxVal
+            if (hasMax && gpa >= maxVal) {
+                visible = false;
+            }
+
+            row.style.display = visible ? '' : 'none';
+        });
     }
 
     /**
@@ -99,6 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const rawGpa = classCount > 0 ? (totalGpaPoints / classCount).toFixed(2) : 'N/A';
+        row.dataset.gpa = rawGpa;
+
         const gpaCell = row.querySelector('.gpa-cell');
         if (gpaCell) {
             gpaCell.innerHTML = formatGpaBadge(rawGpa);
