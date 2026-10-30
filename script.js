@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Process direct letter grades (e.g., "A+", "B-", "C")
         const upperLetter = strGrade.toUpperCase();
 
-        if (upperLetter === 'A+' || upperLetter === 'A') {
+        if (upperLetter === 'A+' || upperLetter === 'A' || upperLetter === 'S+' || upperLetter === 'S') {
             return { letter: upperLetter, gpa: 4.0 };
         }
 
