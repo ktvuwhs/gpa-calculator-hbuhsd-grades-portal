@@ -216,11 +216,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Converts raw grade string (letter or percentage with '%') to letter grade and GPA points.
+     * Converts raw grade string (letter, percentage, or custom format like "B | Silver")
+     * to clean letter grade and GPA points.
      */
     function parseGrade(rawGrade) {
         let strGrade = String(rawGrade).trim();
         if (!strGrade) return null;
+
+        // Strip custom suffixes or descriptions separated by "|" (e.g., "B | Silver" -> "B")
+        if (strGrade.includes('|')) {
+            strGrade = strGrade.split('|')[0].trim();
+        }
 
         // Check if grade is a percentage (e.g., "95%", "87.5%")
         const isPercentage = strGrade.includes('%') || !isNaN(parseFloat(strGrade));
